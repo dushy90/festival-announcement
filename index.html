@@ -106,8 +106,14 @@
 
       try {
 
+        // Prevent browser cache
         const response =
-          await fetch(sheetUrl);
+          await fetch(
+            sheetUrl + "&t=" + new Date().getTime(),
+            {
+              cache: "no-store"
+            }
+          );
 
         const csv =
           await response.text();
@@ -170,13 +176,13 @@
         voices
       );
 
-      // Telugu voice
+      // Telugu voice first
       let teluguVoice =
         voices.find(v =>
           v.lang.includes("te")
         );
 
-      // Fallback
+      // Fallback to Indian English
       if (!teluguVoice) {
 
         teluguVoice =
@@ -203,6 +209,7 @@
 
     function speakTelugu(text) {
 
+      // Stop previous speech
       speechSynthesis.cancel();
 
       const utterance =
@@ -297,7 +304,7 @@
         return;
       }
 
-      // Last row
+      // Get latest row
       const last =
         rows[rows.length - 1];
 
@@ -382,10 +389,10 @@
 
         speakTelugu(message);
 
-        // Delay between announcements
+        // Reduced delay between announcements
         await new Promise(
           resolve =>
-            setTimeout(resolve, 7000)
+            setTimeout(resolve, 3500)
         );
       }
 
