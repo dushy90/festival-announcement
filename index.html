@@ -1,63 +1,3 @@
-<!DOCTYPE html>
-<html>
-
-<head>
-
-  <title>Temple Festival Announcement System</title>
-
-  <style>
-
-    body {
-      font-family: Arial;
-      text-align: center;
-      margin-top: 50px;
-      background: #f5f5f5;
-    }
-
-    h1 {
-      margin-bottom: 40px;
-    }
-
-    button {
-
-      width: 260px;
-      height: 90px;
-
-      font-size: 26px;
-
-      margin: 20px;
-
-      border: none;
-
-      border-radius: 12px;
-
-      background: #6a1b9a;
-
-      color: white;
-
-      cursor: pointer;
-    }
-
-    button:hover {
-      opacity: 0.9;
-    }
-
-  </style>
-
-</head>
-
-<body>
-
-<h1>Temple Festival Announcement System</h1>
-
-<button onclick="announceLast()">
-  Announce Last
-</button>
-
-<button onclick="announceAll()">
-  Announce All
-</button>
-
 <script>
 
 const sheetUrl =
@@ -69,9 +9,16 @@ async function fetchSheetData() {
 
   const csv = await response.text();
 
-  const rows = csv.trim()
+  console.log(csv);
+
+  const rows = csv
+    .trim()
     .split("\n")
-    .map(r => r.split(","));
+    .map(row => {
+
+      return row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
+
+    });
 
   return rows;
 }
@@ -89,6 +36,8 @@ function speakText(text) {
 
   speech.volume = 1;
 
+  console.log("Speaking:", text);
+
   window.speechSynthesis.speak(speech);
 }
 
@@ -98,11 +47,14 @@ async function announceLast() {
 
   const last = rows[rows.length - 1];
 
-  const name = last[1];
+  const name =
+    last[1]?.replace(/"/g, "").trim();
 
-  const amount = last[2];
+  const amount =
+    last[2]?.replace(/"/g, "").trim();
 
-  const purpose = last[3];
+  const purpose =
+    last[3]?.replace(/"/g, "").trim();
 
   let message =
     `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
@@ -122,11 +74,14 @@ async function announceAll() {
 
     const row = rows[i];
 
-    const name = row[1];
+    const name =
+      row[1]?.replace(/"/g, "").trim();
 
-    const amount = row[2];
+    const amount =
+      row[2]?.replace(/"/g, "").trim();
 
-    const purpose = row[3];
+    const purpose =
+      row[3]?.replace(/"/g, "").trim();
 
     let message =
       `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
@@ -144,7 +99,3 @@ async function announceAll() {
 }
 
 </script>
-
-</body>
-
-</html>
