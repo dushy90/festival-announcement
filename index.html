@@ -10,9 +10,6 @@
 
   <title>Temple Festival Announcement System</title>
 
-  <!-- Telugu Voice Library -->
-  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
-
   <style>
 
     body {
@@ -66,6 +63,8 @@
       font-size: 20px;
 
       color: green;
+
+      padding: 20px;
     }
 
   </style>
@@ -84,7 +83,9 @@
     📢 Announce All
   </button>
 
-  <div id="status"></div>
+  <div id="status">
+    Ready for announcements...
+  </div>
 
   <script>
 
@@ -94,6 +95,8 @@
 
     const sheetUrl =
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5V04qkI0VB032UjZvc74TOrNdrP2xpGc-iKSn3GEkHPZSqhRBrPaxYmilHtj8lemePSOeSEWt79Eh/pub?gid=1652293168&single=true&output=csv";
+
+
 
     // ==========================================
     // FETCH GOOGLE SHEET DATA
@@ -123,38 +126,17 @@
         console.error(error);
 
         updateStatus(
-          "❌ Failed to fetch sheet data"
+          "❌ Failed to fetch Google Sheet data"
         );
 
         return [];
       }
     }
 
-    // ==========================================
-    // SPEAK TELUGU
-    // ==========================================
 
-    function speakTelugu(text) {
-
-      console.log("Speaking:", text);
-
-      updateStatus(
-        "🔊 " + text
-      );
-
-      responsiveVoice.speak(
-        text,
-        "Telugu Female",
-        {
-          rate: 0.9,
-          pitch: 1,
-          volume: 1
-        }
-      );
-    }
 
     // ==========================================
-    // STATUS MESSAGE
+    // UPDATE STATUS MESSAGE
     // ==========================================
 
     function updateStatus(message) {
@@ -164,8 +146,94 @@
       ).innerText = message;
     }
 
+
+
     // ==========================================
-    // ANNOUNCE LAST ENTRY
+    // GET TELUGU VOICE
+    // ==========================================
+
+    function getTeluguVoice() {
+
+      const voices =
+        speechSynthesis.getVoices();
+
+      console.log("Available Voices:", voices);
+
+      // Try Telugu voice first
+      let teluguVoice =
+        voices.find(v =>
+          v.lang.includes("te")
+        );
+
+      // Fallback to Indian English
+      if (!teluguVoice) {
+
+        teluguVoice =
+          voices.find(v =>
+            v.lang.includes("en-IN")
+          );
+      }
+
+      // Final fallback
+      if (!teluguVoice) {
+
+        teluguVoice = voices[0];
+      }
+
+      return teluguVoice;
+    }
+
+
+
+    // ==========================================
+    // SPEAK TELUGU MESSAGE
+    // ==========================================
+
+    function speakTelugu(text) {
+
+      speechSynthesis.cancel();
+
+      const utterance =
+        new SpeechSynthesisUtterance();
+
+      utterance.text = text;
+
+      utterance.rate = 0.9;
+
+      utterance.pitch = 1;
+
+      utterance.volume = 1;
+
+      const selectedVoice =
+        getTeluguVoice();
+
+      if (selectedVoice) {
+
+        utterance.voice =
+          selectedVoice;
+
+        utterance.lang =
+          selectedVoice.lang;
+      }
+
+      console.log(
+        "Speaking:",
+        text
+      );
+
+      updateStatus(
+        "🔊 " + text
+      );
+
+      speechSynthesis.speak(
+        utterance
+      );
+    }
+
+
+
+    // ==========================================
+    // ANNOUNCE LAST DONATION
     // ==========================================
 
     async function announceLast() {
@@ -180,7 +248,7 @@
       if (rows.length <= 1) {
 
         updateStatus(
-          "No donation data found"
+          "❌ No donation data found"
         );
 
         return;
@@ -214,8 +282,10 @@
       speakTelugu(message);
     }
 
+
+
     // ==========================================
-    // ANNOUNCE ALL ENTRIES
+    // ANNOUNCE ALL DONATIONS
     // ==========================================
 
     async function announceAll() {
@@ -230,7 +300,7 @@
       if (rows.length <= 1) {
 
         updateStatus(
-          "No donation data found"
+          "❌ No donation data found"
         );
 
         return;
@@ -272,7 +342,7 @@
         // Wait before next announcement
         await new Promise(
           resolve =>
-            setTimeout(resolve, 8000)
+            setTimeout(resolve, 7000)
         );
       }
 
@@ -280,6 +350,21 @@
         "✅ Completed all announcements"
       );
     }
+
+
+
+    // ==========================================
+    // LOAD VOICES
+    // ==========================================
+
+    speechSynthesis.onvoiceschanged =
+      function () {
+
+        console.log(
+          "Voices Loaded:",
+          speechSynthesis.getVoices()
+        );
+      };
 
   </script>
 
