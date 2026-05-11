@@ -117,7 +117,15 @@
         const rows = csv
           .trim()
           .split("\n")
-          .map(r => r.split(","));
+          .map(row => {
+
+            return row.match(
+              /(".*?"|[^",]+)(?=\s*,|\s*$)/g
+            );
+
+          });
+
+        console.log(rows);
 
         return rows;
 
@@ -157,15 +165,18 @@
       const voices =
         speechSynthesis.getVoices();
 
-      console.log("Available Voices:", voices);
+      console.log(
+        "Available Voices:",
+        voices
+      );
 
-      // Try Telugu voice first
+      // Telugu voice
       let teluguVoice =
         voices.find(v =>
           v.lang.includes("te")
         );
 
-      // Fallback to Indian English
+      // Fallback
       if (!teluguVoice) {
 
         teluguVoice =
@@ -177,7 +188,8 @@
       // Final fallback
       if (!teluguVoice) {
 
-        teluguVoice = voices[0];
+        teluguVoice =
+          voices[0];
       }
 
       return teluguVoice;
@@ -233,6 +245,37 @@
 
 
     // ==========================================
+    // CREATE ANNOUNCEMENT MESSAGE
+    // ==========================================
+
+    function createMessage(
+      name,
+      amount,
+      purpose
+    ) {
+
+      let message = "";
+
+      if (
+        purpose &&
+        purpose.trim() !== ""
+      ) {
+
+        message =
+          `${name} గారు ${purpose} కోసం ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
+
+      } else {
+
+        message =
+          `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
+      }
+
+      return message;
+    }
+
+
+
+    // ==========================================
     // ANNOUNCE LAST DONATION
     // ==========================================
 
@@ -258,6 +301,11 @@
       const last =
         rows[rows.length - 1];
 
+      console.log(
+        "Last Row:",
+        last
+      );
+
       const name =
         last[1]?.trim();
 
@@ -267,21 +315,12 @@
       const purpose =
         last[3]?.trim();
 
-      let message = "";
-
-      if (
-       purpose &&
-       purpose.trim() !== ""
-      ) {
-
-       message =
-         `${name} గారు ${purpose} కోసం ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
-
-      } else {
-
-      message =
-        `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
-      }
+      const message =
+        createMessage(
+          name,
+          amount,
+          purpose
+        );
 
       speakTelugu(message);
     }
@@ -320,6 +359,11 @@
         const row =
           rows[i];
 
+        console.log(
+          "Processing Row:",
+          row
+        );
+
         const name =
           row[1]?.trim();
 
@@ -329,21 +373,16 @@
         const purpose =
           row[3]?.trim();
 
-        let message =
-          `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
-
-        if (
-          purpose &&
-          purpose !== ""
-        ) {
-
-          message +=
-            ` ${purpose} కోసం`;
-        }
+        const message =
+          createMessage(
+            name,
+            amount,
+            purpose
+          );
 
         speakTelugu(message);
 
-        // Wait before next announcement
+        // Delay between announcements
         await new Promise(
           resolve =>
             setTimeout(resolve, 7000)
@@ -358,7 +397,7 @@
 
 
     // ==========================================
-    // LOAD VOICES
+    // LOAD AVAILABLE VOICES
     // ==========================================
 
     speechSynthesis.onvoiceschanged =
