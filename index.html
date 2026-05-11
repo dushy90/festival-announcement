@@ -1,31 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
   <title>Temple Festival Announcement System</title>
+
+  <!-- Telugu Voice Library -->
+  <script src="https://code.responsivevoice.org/responsivevoice.js?key=free"></script>
 
   <style>
 
     body {
-      font-family: Arial;
-      text-align: center;
-      margin-top: 50px;
+
+      font-family: Arial, sans-serif;
+
       background: #f5f5f5;
+
+      text-align: center;
+
+      padding-top: 50px;
     }
 
     h1 {
+
+      color: #6a1b9a;
+
       margin-bottom: 40px;
     }
 
     button {
 
-      width: 260px;
+      width: 280px;
+
       height: 90px;
 
-      font-size: 26px;
-
       margin: 20px;
+
+      font-size: 24px;
 
       border: none;
 
@@ -39,7 +55,17 @@
     }
 
     button:hover {
+
       opacity: 0.9;
+    }
+
+    #status {
+
+      margin-top: 30px;
+
+      font-size: 20px;
+
+      color: green;
     }
 
   </style>
@@ -48,105 +74,215 @@
 
 <body>
 
-<h1>Temple Festival Announcement System</h1>
+  <h1>Temple Festival Announcement System</h1>
 
-<button onclick="announceLast()">
-  Announce Last
-</button>
+  <button onclick="announceLast()">
+    🔊 Announce Last
+  </button>
 
-<button onclick="announceAll()">
-  Announce All
-</button>
+  <button onclick="announceAll()">
+    📢 Announce All
+  </button>
 
-<script>
+  <div id="status"></div>
 
-const sheetUrl =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5V04qkI0VB032UjZvc74TOrNdrP2xpGc-iKSn3GEkHPZSqhRBrPaxYmilHtj8lemePSOeSEWt79Eh/pub?gid=1652293168&single=true&output=csv";
+  <script>
 
-async function fetchSheetData() {
+    // ==========================================
+    // GOOGLE SHEET PUBLISHED CSV URL
+    // ==========================================
 
-  const response = await fetch(sheetUrl);
+    const sheetUrl =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vQ5V04qkI0VB032UjZvc74TOrNdrP2xpGc-iKSn3GEkHPZSqhRBrPaxYmilHtj8lemePSOeSEWt79Eh/pub?gid=1652293168&single=true&output=csv";
 
-  const csv = await response.text();
+    // ==========================================
+    // FETCH GOOGLE SHEET DATA
+    // ==========================================
 
-  const rows = csv
-    .trim()
-    .split("\n")
-    .map(r => r.split(","));
+    async function fetchSheetData() {
 
-  return rows;
-}
+      try {
 
-function playTeluguAudio(text) {
+        const response =
+          await fetch(sheetUrl);
 
-  const encoded =
-    encodeURIComponent(text);
+        const csv =
+          await response.text();
 
-  const audioUrl =
-    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encoded}&tl=te&client=tw-ob`;
+        console.log(csv);
 
-  const audio = new Audio(audioUrl);
+        const rows = csv
+          .trim()
+          .split("\n")
+          .map(r => r.split(","));
 
-  audio.volume = 1;
+        return rows;
 
-  audio.play();
-}
+      } catch (error) {
 
-async function announceLast() {
+        console.error(error);
 
-  const rows = await fetchSheetData();
+        updateStatus(
+          "❌ Failed to fetch sheet data"
+        );
 
-  const last = rows[rows.length - 1];
-
-  const name = last[1];
-
-  const amount = last[2];
-
-  const purpose = last[3];
-
-  let message =
-    `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
-
-  if (purpose && purpose.trim() !== "") {
-
-    message += ` ${purpose} కోసం`;
-  }
-
-  console.log(message);
-
-  playTeluguAudio(message);
-}
-
-async function announceAll() {
-
-  const rows = await fetchSheetData();
-
-  for (let i = 1; i < rows.length; i++) {
-
-    const row = rows[i];
-
-    const name = row[1];
-
-    const amount = row[2];
-
-    const purpose = row[3];
-
-    let message =
-      `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
-
-    if (purpose && purpose.trim() !== "") {
-
-      message += ` ${purpose} కోసం`;
+        return [];
+      }
     }
 
-    console.log(message);
+    // ==========================================
+    // SPEAK TELUGU
+    // ==========================================
 
-    playTeluguAudio(message);
+    function speakTelugu(text) {
 
-    await new Promise(resolve =>
-      setTimeout(resolve, 8000)
-    );
-  }
-}
+      console.log("Speaking:", text);
 
-</script>
+      updateStatus(
+        "🔊 " + text
+      );
+
+      responsiveVoice.speak(
+        text,
+        "Telugu Female",
+        {
+          rate: 0.9,
+          pitch: 1,
+          volume: 1
+        }
+      );
+    }
+
+    // ==========================================
+    // STATUS MESSAGE
+    // ==========================================
+
+    function updateStatus(message) {
+
+      document.getElementById(
+        "status"
+      ).innerText = message;
+    }
+
+    // ==========================================
+    // ANNOUNCE LAST ENTRY
+    // ==========================================
+
+    async function announceLast() {
+
+      updateStatus(
+        "Fetching latest donation..."
+      );
+
+      const rows =
+        await fetchSheetData();
+
+      if (rows.length <= 1) {
+
+        updateStatus(
+          "No donation data found"
+        );
+
+        return;
+      }
+
+      // Last row
+      const last =
+        rows[rows.length - 1];
+
+      const name =
+        last[1]?.trim();
+
+      const amount =
+        last[2]?.trim();
+
+      const purpose =
+        last[3]?.trim();
+
+      let message =
+        `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
+
+      if (
+        purpose &&
+        purpose !== ""
+      ) {
+
+        message +=
+          ` ${purpose} కోసం`;
+      }
+
+      speakTelugu(message);
+    }
+
+    // ==========================================
+    // ANNOUNCE ALL ENTRIES
+    // ==========================================
+
+    async function announceAll() {
+
+      updateStatus(
+        "Fetching all donations..."
+      );
+
+      const rows =
+        await fetchSheetData();
+
+      if (rows.length <= 1) {
+
+        updateStatus(
+          "No donation data found"
+        );
+
+        return;
+      }
+
+      // Skip header row
+      for (
+        let i = 1;
+        i < rows.length;
+        i++
+      ) {
+
+        const row =
+          rows[i];
+
+        const name =
+          row[1]?.trim();
+
+        const amount =
+          row[2]?.trim();
+
+        const purpose =
+          row[3]?.trim();
+
+        let message =
+          `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
+
+        if (
+          purpose &&
+          purpose !== ""
+        ) {
+
+          message +=
+            ` ${purpose} కోసం`;
+        }
+
+        speakTelugu(message);
+
+        // Wait before next announcement
+        await new Promise(
+          resolve =>
+            setTimeout(resolve, 8000)
+        );
+      }
+
+      updateStatus(
+        "✅ Completed all announcements"
+      );
+    }
+
+  </script>
+
+</body>
+
+</html>
