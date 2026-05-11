@@ -69,36 +69,27 @@ async function fetchSheetData() {
 
   const csv = await response.text();
 
-  console.log(csv);
-
   const rows = csv
     .trim()
     .split("\n")
-    .map(row => {
-
-      return row.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g);
-
-    });
+    .map(r => r.split(","));
 
   return rows;
 }
 
-function speakText(text) {
+function playTeluguAudio(text) {
 
-  speechSynthesis.cancel();
+  const encoded =
+    encodeURIComponent(text);
 
-  const speech =
-    new SpeechSynthesisUtterance(text);
+  const audioUrl =
+    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encoded}&tl=te&client=tw-ob`;
 
-  speech.lang = "te-IN";
+  const audio = new Audio(audioUrl);
 
-  speech.rate = 0.9;
+  audio.volume = 1;
 
-  speech.volume = 1;
-
-  console.log("Speaking:", text);
-
-  window.speechSynthesis.speak(speech);
+  audio.play();
 }
 
 async function announceLast() {
@@ -107,23 +98,23 @@ async function announceLast() {
 
   const last = rows[rows.length - 1];
 
-  const name =
-    last[1]?.replace(/"/g, "").trim();
+  const name = last[1];
 
-  const amount =
-    last[2]?.replace(/"/g, "").trim();
+  const amount = last[2];
 
-  const purpose =
-    last[3]?.replace(/"/g, "").trim();
+  const purpose = last[3];
 
   let message =
     `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
 
-  if (purpose) {
+  if (purpose && purpose.trim() !== "") {
+
     message += ` ${purpose} కోసం`;
   }
 
-  speakText(message);
+  console.log(message);
+
+  playTeluguAudio(message);
 }
 
 async function announceAll() {
@@ -134,26 +125,26 @@ async function announceAll() {
 
     const row = rows[i];
 
-    const name =
-      row[1]?.replace(/"/g, "").trim();
+    const name = row[1];
 
-    const amount =
-      row[2]?.replace(/"/g, "").trim();
+    const amount = row[2];
 
-    const purpose =
-      row[3]?.replace(/"/g, "").trim();
+    const purpose = row[3];
 
     let message =
       `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
 
-    if (purpose) {
+    if (purpose && purpose.trim() !== "") {
+
       message += ` ${purpose} కోసం`;
     }
 
-    speakText(message);
+    console.log(message);
+
+    playTeluguAudio(message);
 
     await new Promise(resolve =>
-      setTimeout(resolve, 7000)
+      setTimeout(resolve, 8000)
     );
   }
 }
