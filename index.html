@@ -267,16 +267,20 @@
       const purpose =
         last[3]?.trim();
 
-      let message =
-        `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
+      let message = "";
 
       if (
-        purpose &&
-        purpose !== ""
+       purpose &&
+       purpose.trim() !== ""
       ) {
 
-        message +=
-          ` ${purpose} కోసం`;
+       message =
+         `${name} గారు ${purpose} కోసం ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
+
+      } else {
+
+      message =
+        `${name} గారు ${amount} రూపాయలు విరాళంగా ఇచ్చారు`;
       }
 
       speakTelugu(message);
